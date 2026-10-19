@@ -12,4 +12,4 @@ Pearly is a native Mac app that mines Pearl (PRL) and Ycash (YEC) on the GPU of 
 This repository holds binary releases only. Pearly is proprietary software under its End User Licence Agreement, which ships inside the app with the third-party notices.
 
 > [!IMPORTANT]
-> Pearl has a proposed hard fork, [PIP-3](https://github.com/pearl-research-labs/pips/blob/main/PIPS/pip-0003.md), that would move mining to floating-point (FP8) arithmetic. If it activates, Pearly 1.0.0 will no longer be able to mine Pearl, and current Apple silicon is unlikely to mine Pearl effectively. Ycash mining is unaffected. As of October 2026, PIP-3 is a draft with no activation date.
+> Pearl has a proposed hard fork, [PIP-3](https://github.com/pearl-research-labs/pips/blob/main/PIPS/pip-0003.md), that would move mining to floating-point (FP8) arithmetic. If it activates, Pearly 1.0.1 and earlier will no longer be able to mine Pearl, and current Apple silicon is unlikely to mine Pearl effectively. Ycash mining is unaffected. As of October 2026, PIP-3 is a draft with no activation date.
