@@ -17,7 +17,7 @@ This repository holds binary releases only. Pearly is proprietary software under
 
 1. Download the DMG file.
 2. Open it and drag **Pearly** onto **Applications**.
-3. Open Pearly from Applications, choose a coin, and enter your wallet address.
+3. Open Pearly from Applications, choose a coin, and enter your wallet address, or choose **Use built-in address** if you don't have a wallet yet.
 
 Pearly is signed with a Developer ID and notarized by Apple. The first time you open it, macOS asks you to confirm opening an app downloaded from the internet.
 
@@ -25,11 +25,12 @@ Pearly is signed with a Developer ID and notarized by Apple. The first time you 
 
 - macOS 26 or later. Pearly uses Metal 4 tensor operations.
 - An Apple silicon Mac. Pearly was designed for the M5 generation and tested on an M5 Max. It hasn't been tested on M1 to M4: Ycash should work, but those chips lack the M5's GPU matrix hardware, so Pearl, if it runs, will be much slower. Intel Macs aren't supported.
-- A wallet address for the coin you mine, and a pool. Pearly starts with Kryptex for Pearl and daPool for Ycash; you can change either.
+- A wallet address for the coin you mine, or Pearly's built-in one, and a pool. Pearly starts with Kryptex for Pearl and daPool for Ycash; you can change either.
 
 ## Notes
 
 - **Two coins, one switch.** Mine Pearl or Ycash and switch at any time. Each coin keeps its own address, pool and worker name.
+- **Built-in payout address.** No wallet yet? Choose **Use built-in address** beside Payout address. Pearly makes an address and the recovery phrase that holds it: 12 words for Pearl Wallet, 24 for Ywallet. The phrase stays in your Mac's Keychain, and Pearly shows it only after Touch ID or your password. Write it down, then import it into the wallet whenever you're ready to see and spend what you've mined. If you already use Pearl Wallet, restore the phrase as a second wallet. For Ywallet, Pearly also shows the address's private key, which Ywallet's Sweep takes.
 - **Pearl on the GPU's matrix units.** Pearl's proof of work runs as int8 tensor operations on the M5 GPU's neural accelerators. Every share is checked on your Mac with Pearl's own verifier before it's sent.
 - **Live dashboard.** The window shows hashrate with a graph, power draw (GPU and memory), efficiency (TH/s per watt and joules per TH, or Sol/s per watt and joules per Sol), Pearly's share of the GPU, accepted shares and an estimate of daily earnings. The menu bar shows a live readout.
 - **GPU share.** If another app is using the GPU, Pearly shows how much of it Pearly gets and, on hover, which apps take the rest.
