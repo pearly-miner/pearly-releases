@@ -1,62 +1,167 @@
 # Pearly
 
-Pearly is a native Mac app that mines Pearl (PRL) and Ycash (YEC) on the GPU of Apple silicon Macs.
+Pearly mines **Pearl (PRL)** and **Ycash (YEC)** on Apple silicon Macs and NVIDIA GPUs. Use the Mac app or the command-line miner for Linux and Windows.
 
 **[Download the latest release](https://github.com/pearly-miner/pearly-releases/releases/latest)** · [pearly.dev](https://pearly.dev)
 
-- **Requirements:** macOS 26 or later on an Apple silicon Mac. Designed for the M5 generation. Pearly hasn't been tested on M1 to M4: Ycash should work, but those chips lack the M5's GPU matrix hardware, so Pearl, if it runs, will be much slower.
-- **Install:** open the disk image and drag Pearly onto Applications. Pearly is signed and notarized by Apple.
-- **Fee:** Pearly is free, with a 2% developer fee for each coin, mined on the pool you choose.
-- **Verify:** each release lists the SHA-256 of its disk image in a `.SHA256SUMS` file. Check a download with `shasum -a 256 -c Pearly-<version>.SHA256SUMS`.
+Pearly is free to download, with a **2% developer fee** for each coin. This repository holds binary releases only. Pearly is proprietary software; the licence and third-party notices are included in each package.
 
-This repository holds binary releases only. Pearly is proprietary software under its End User Licence Agreement, which ships inside the app with the third-party notices.
+## Choose a download
 
-**Updating from an earlier version:** quit Pearly, then drag the new version onto Applications and replace the old one. Your addresses, pools and settings are kept.
+| Platform | Pearly 2.0.0 download | Interface |
+|---|---|---|
+| macOS, Apple silicon | [Pearly-2.0.0.dmg](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/Pearly-2.0.0.dmg) | Mac app |
+| Linux, x86-64, NVIDIA | [pearly-2.0.0-linux-x86_64.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/pearly-2.0.0-linux-x86_64.tar.gz) | Command line |
+| Windows, x86-64, NVIDIA | [pearly-2.0.0-windows-x86_64.zip](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/pearly-2.0.0-windows-x86_64.zip) | Command line |
 
-## Install
 
-1. Download the DMG file.
-2. Open it and drag **Pearly** onto **Applications**.
-3. Open Pearly from Applications, choose a coin, and enter your wallet address, or choose **Use built-in address** if you don't have a wallet yet.
 
-Pearly is signed with a Developer ID and notarized by Apple. The first time you open it, macOS asks you to confirm opening an app downloaded from the internet.
 
-## Requirements
+## Linux and Windows
 
-- macOS 26 or later. Pearly uses Metal 4 tensor operations.
-- An Apple silicon Mac. Pearly was designed for the M5 generation and tested on an M5 Max. It hasn't been tested on M1 to M4: Ycash should work, but those chips lack the M5's GPU matrix hardware, so Pearl, if it runs, will be much slower. Intel Macs aren't supported.
-- A wallet address for the coin you mine, or Pearly's built-in one, and a pool. Pearly starts with Kryptex for Pearl and daPool for Ycash; you can change either.
+Install an NVIDIA driver before running Pearly. The CUDA development toolkit is not required.
 
-## Notes
+- **Linux:** x86-64 with glibc 2.34 or later; tested on Ubuntu 22.04.
+- **Windows:** x86-64; tested on Windows 11 Enterprise LTSC 2024. The C++ runtime is included. The executable is not Authenticode-signed; verify the download using its checksum.
+- **GPUs:** both engines were tested on RTX 3090, RTX 4090, RTX 5070 Ti and RTX 5090. Pearl automatically selects an optimized kernel for these cards. Other included NVIDIA architectures use fallback kernels, but have not all been tested. The release's `RELEASE_MANIFEST.json` lists the tested cards and drivers.
 
-- **Two coins, one switch.** Mine Pearl or Ycash and switch at any time. Each coin keeps its own address, pool and worker name.
-- **Built-in payout address.** No wallet yet? Choose **Use built-in address** beside Payout address. Pearly makes an address and the recovery phrase that holds it: 12 words for Pearl Wallet, 24 for Ywallet. The phrase stays in your Mac's Keychain, and Pearly shows it only after Touch ID or your password. Write it down, then import it into the wallet whenever you're ready to see and spend what you've mined. If you already use Pearl Wallet, restore the phrase as a second wallet. For Ywallet, Pearly also shows the address's private key, which Ywallet's Sweep takes.
-- **Pearl on the GPU's matrix units.** Pearl's proof of work runs as int8 tensor operations on the M5 GPU's neural accelerators. Every share is checked on your Mac with Pearl's own verifier before it's sent.
-- **Live dashboard.** The window shows hashrate with a graph, power draw (GPU and memory), efficiency (TH/s per watt and joules per TH, or Sol/s per watt and joules per Sol), Pearly's share of the GPU, accepted shares and an estimate of daily earnings. The menu bar shows a live readout.
-- **GPU share.** If another app is using the GPU, Pearly shows how much of it Pearly gets and, on hover, which apps take the rest.
-- **Settings take effect on restart.** After you edit an address, pool or worker, a banner offers to restart the miner with the new settings.
-- **Update notices.** Pearly checks this repository for new releases and shows a banner you can dismiss.
-- **Stays awake while mining.** On the power adapter, Pearly keeps the Mac from idle-sleeping while it mines. The display still turns off. It never starts mining by itself: mining begins when you open Pearly.
+The command-line examples below use one GPU and one pool. Use `devices` to list GPUs and `--help` for available options.
 
-## On an M5 Max
+### Linux quick start
 
-| | High Power | Automatic | Low Power |
-|---|---|---|---|
-| Pearl | 46 TH/s, about 50 W | 42 TH/s, about 40 W | 23 TH/s, about 13 W |
-| Ycash | 57 Sol/s, about 49 W | 47 Sol/s, about 29 W | 23 Sol/s, about 11 W |
+Extract the archive and enter its directory:
 
-These were measured by the developer on a MacBook Pro plugged in, with the Energy Mode set in System Settings → Battery. Power is the GPU and its memory, as Pearly reports it. Other Macs will differ.
+```sh
+tar -xzf pearly-2.0.0-linux-x86_64.tar.gz
+cd pearly-2.0.0-linux-x86_64
+./pearly --version
+./pearly devices
+./pearly selftest --zk
+```
+
+Mine Pearl, using Kryptex as an example:
+
+```sh
+./pearly pool --url stratum+ssl://prl.kryptex.network:8048 --wallet YOUR_PEARL_ADDRESS.WORKER
+```
+
+Mine Ycash, using zpool as an example:
+
+```sh
+./pearly ycash pool --url stratum+ssl://equihash192.mine.zpool.ca:52192 --user YOUR_YCASH_ADDRESS.WORKER --password 'c=YEC,zap=YEC'
+```
+
+Replace the address and worker placeholders with your own. Use a payout address for the coin you are mining.
+
+### Windows quick start
+
+Extract the ZIP, open PowerShell in the extracted directory containing `pearly.exe`, then run:
+
+```powershell
+.\pearly.exe --version
+.\pearly.exe devices
+.\pearly.exe selftest --zk
+```
+
+Pearl:
+
+```powershell
+.\pearly.exe pool --url stratum+ssl://prl.kryptex.network:8048 --wallet YOUR_PEARL_ADDRESS.WORKER
+```
+
+Ycash:
+
+```powershell
+.\pearly.exe ycash pool --url stratum+ssl://equihash192.mine.zpool.ca:52192 --user YOUR_YCASH_ADDRESS.WORKER --password 'c=YEC,zap=YEC'
+```
+
+Use **Ctrl-C in the miner's console** to stop cleanly. Closing the console or force-killing the process can interrupt shutdown and leave clock settings in place.
+
+### Pearl GPU settings
+
+Core offset defaults to zero. Clock and power changes require permission from the NVIDIA driver.
+
+| Option | Effect |
+|---|---|
+| `--device N` | Select the CUDA device listed by `pearly devices` |
+| `--power-limit WATTS` | Request a power cap for the selected GPU |
+| `--core-offset MHZ` | Request a core-clock offset |
+| `--mem-clock auto` | Default: attempt an 810 MHz memory lock only when the automatic policy permits it |
+| `--mem-clock 810` | Explicitly request an 810 MHz memory lock |
+| `--mem-clock 0` | Leave memory clocks untouched, including any existing lock |
+
+On Windows, desktop processes can cause automatic mode to leave memory clocks with the driver. You can explicitly request `--mem-clock 810`, but it can improve efficiency on some cards and reduce hashrate on others. It is not a universal tuning recommendation.
+
+A clean exit releases memory/core clock locks set by Pearly, resets its core offset to zero and restores the previous power cap. Releasing a clock lock returns control to the driver; it does not reconstruct a lock previously set by another tool. If another tool manages memory clocks, use `--mem-clock 0`.
+
+### SRBMiner-style Pearl launches
+
+Common SRBMiner PearlHash arguments are accepted:
+
+```sh
+./pearly --algorithm pearlhash --disable-cpu --pool prl.kryptex.network:8048 --tls true --wallet YOUR_PEARL_ADDRESS.WORKER --gpu-id 0
+```
+
+On Windows, replace `./pearly` with `.\pearly.exe`. This compatibility mode supports **one GPU and one pool**. It does not implement SRBMiner's multi-GPU lists, failover lists, other algorithms, fan controls or management API. Unsupported options produce an error. `--disable-cpu` disables CPU hashing, not Pearl's required CPU proof generation.
+
+## Pools
+
+Use the host, port, payout-address format and password specified by your pool. A `stratum+ssl://` URL enables TLS with certificate and hostname verification by default. A `stratum+tcp://` URL uses plain TCP.
+
+Pearl 2.0.0 was checked with Kryptex, Peryn, SkyPool, 2Miners, JetskiPool, Suprnova, PearlFortune, LuckyPool, HeroMiners, AlphaPool, k1pool, pooly.ca and BaikalMine. Ycash was checked with daPool, zpool and pooly.ca. These checks establish accepted shares at the tested endpoints, not a guarantee for every regional endpoint or future pool configuration.
+
+Pearl negotiates proof compression with the pool. Pools that do not support compressed proofs receive smaller workloads, which can reduce hashrate. Compression adapts to supported expansion-ratio limits, including HeroMiners' limit.
+
+## Mac
+
+Requires **macOS 26 or later** on an **Apple silicon Mac**. Pearly was designed for the M5 generation and tested on an M5 Max. M1–M4 Macs have not been tested: Ycash may work, but those chips lack the M5's GPU matrix hardware used for Pearl. Intel Macs are not supported.
+
+1. Open the DMG and drag **Pearly** onto **Applications**.
+2. Open Pearly, choose a coin, and enter your payout address and pool.
+3. If you do not have an address, choose **Use built-in address**.
+
+The app is signed with a Developer ID and notarized by Apple. Its default pools are Kryptex for Pearl and daPool for Ycash; you can change either.
+
+**Updating:** quit the old app, then replace it in Applications. Your saved addresses, pools, settings and recovery phrases are preserved.
+
+### Mac app features
+
+- **Separate settings for each coin.** Switch between Pearl and Ycash; each keeps its address, pool and worker name. Changes to these settings take effect when mining restarts.
+- **Built-in payout addresses.** Pearly can generate an address and recovery phrase: 12 words for Pearl Wallet or 24 for Ywallet. The phrase stays in your Mac's Keychain and is shown only after Touch ID or your password. Write it down and import it into the corresponding wallet to access your mined coins. Ycash also offers the private key for Ywallet's Sweep.
+- **Live dashboard.** See hashrate, GPU power, efficiency, accepted shares and estimated earnings. The menu bar provides a compact readout.
+- **GPU sharing.** The dashboard shows Pearly's share of the GPU. Display activity and other apps can reduce mining speed.
+- **Update notices.** Pearly checks for new releases and offers an update when one is available.
+- **Keeps the Mac awake.** While mining on the power adapter, Pearly prevents idle sleep; the display can still turn off.
+
 
 ## Developer fee
 
-Pearly is free and carries a 2% developer fee for each coin. The fee is mined on the pool you choose, over a second connection:
+There is a 2% dev fee. Pearly reserves **one GPU operation in fifty** for the developer: one launch for Pearl or one solve for Ycash. The 2% schedule applies to pool and solo mining. It is a share of scheduled work, not a guaranteed fraction of elapsed time, accepted shares or payouts.
 
-- **Pearl:** one GPU launch in fifty.
-- **Ycash:** about 72 seconds of each hour.
+## Verify your download
 
-The fee's work is shown in the Activity log as it's mined.
+Download `SHA256SUMS` from the **same release** as your package. Compute the archive's SHA-256 and compare it with the matching line in that file:
 
-## Known limitations
+macOS:
 
-- **Pearl's proposed FP8 change.** Pearl has a proposed hard fork, [PIP-3](https://github.com/pearl-research-labs/pips/blob/main/PIPS/pip-0003.md), that would move mining to FP8 floating-point arithmetic, which must match specific NVIDIA GPUs bit for bit. If it activates, this version of Pearly will no longer be able to mine Pearl, and current Apple silicon is unlikely to mine it effectively. As of this release, PIP-3 is a draft with no activation date. Ycash is unaffected.
-- **Display-on slowdown.** While the screen is on, macOS and other apps share the GPU, so hashrate is lower than with the display off. Pearly's GPU share shows how much of the GPU it is getting. 
+```sh
+shasum -a 256 Pearly-2.0.0.dmg
+```
+
+Linux:
+
+```sh
+sha256sum pearly-2.0.0-linux-x86_64.tar.gz
+```
+
+Windows PowerShell:
+
+```powershell
+Get-FileHash .\pearly-2.0.0-windows-x86_64.zip -Algorithm SHA256
+```
+
+## Help and reports
+
+For command-line options, run `./pearly --help`, `./pearly pool --help` or `./pearly ycash pool --help` (use `.\pearly.exe` on Windows).
+
+When reporting a problem in [Issues](https://github.com/pearly-miner/pearly-releases/issues), include the Pearly version, operating system, GPU model, NVIDIA driver version if applicable, command line and relevant log lines. Remove wallet addresses and passwords from anything you post. Never post a recovery phrase or private key.
