@@ -8,11 +8,12 @@ Pearly is free to download, with a **2% developer fee** for each coin. This repo
 
 ## Choose a download
 
-| Platform | Pearly 2.0.0 download | Interface |
+| Platform | Pearly 2.0.1 download | Interface |
 |---|---|---|
-| macOS, Apple silicon | [Pearly-2.0.0.dmg](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/Pearly-2.0.0.dmg) | Mac app |
-| Linux, x86-64, NVIDIA | [pearly-2.0.0-linux-x86_64.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/pearly-2.0.0-linux-x86_64.tar.gz) | Command line |
-| Windows, x86-64, NVIDIA | [pearly-2.0.0-windows-x86_64.zip](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.0/pearly-2.0.0-windows-x86_64.zip) | Command line |
+| macOS, Apple silicon | [Pearly-2.0.1.dmg](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.1/Pearly-2.0.1.dmg) | Mac app |
+| Linux, x86-64, NVIDIA | [pearly-2.0.1-linux-x86_64.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.1/pearly-2.0.1-linux-x86_64.tar.gz) | Command line |
+| Windows, x86-64, NVIDIA | [pearly-2.0.1-windows-x86_64.zip](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.1/pearly-2.0.1-windows-x86_64.zip) | Command line |
+| HiveOS, NVIDIA | [pearly-2.0.1.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.1/pearly-2.0.1.tar.gz) | Custom miner |
 
 
 
@@ -23,7 +24,7 @@ Install an NVIDIA driver before running Pearly. The CUDA development toolkit is 
 
 - **Linux:** x86-64 with glibc 2.34 or later; tested on Ubuntu 22.04.
 - **Windows:** x86-64; tested on Windows 11 Enterprise LTSC 2024. The C++ runtime is included. The executable is not Authenticode-signed; verify the download using its checksum.
-- **GPUs:** both engines were tested on RTX 3090, RTX 4090, RTX 5070 Ti and RTX 5090. Pearl automatically selects an optimized kernel for these cards. Other included NVIDIA architectures use fallback kernels, but have not all been tested. The release's `RELEASE_MANIFEST.json` lists the tested cards and drivers.
+- **GPUs:** both engines were tested on RTX 3090, RTX 4090, RTX 5060 Ti, RTX 5070 Ti and RTX 5090. Pearl automatically selects an optimized kernel for these cards. Other included NVIDIA architectures use fallback kernels, but have not all been tested. Each package's manifest lists the tested cards and drivers. Final NVIDIA qualification used Linux driver 620.73.04 and Windows driver 621.40.
 
 The command-line examples below use one GPU and one pool. Use `devices` to list GPUs and `--help` for available options.
 
@@ -32,8 +33,8 @@ The command-line examples below use one GPU and one pool. Use `devices` to list 
 Extract the archive and enter its directory:
 
 ```sh
-tar -xzf pearly-2.0.0-linux-x86_64.tar.gz
-cd pearly-2.0.0-linux-x86_64
+tar -xzf pearly-2.0.1-linux-x86_64.tar.gz
+cd pearly-2.0.1-linux-x86_64
 ./pearly --version
 ./pearly devices
 ./pearly selftest --zk
@@ -75,7 +76,7 @@ Ycash:
 .\pearly.exe ycash pool --url stratum+ssl://equihash192.mine.zpool.ca:52192 --user YOUR_YCASH_ADDRESS.WORKER --password 'c=YEC,zap=YEC'
 ```
 
-Use **Ctrl-C in the miner's console** to stop cleanly. Closing the console or force-killing the process can interrupt shutdown and leave clock settings in place.
+Use **Ctrl-C in the miner's console** to stop cleanly. An independent recovery process also handles console-close and miner-only forced termination. An OS crash, a hung driver or killing the recovery process can still prevent restoration; follow any recovery instructions printed by Pearly.
 
 ### Pearl GPU settings
 
@@ -92,7 +93,7 @@ Core offset defaults to zero. Clock and power changes require permission from th
 
 On Windows, desktop processes can cause automatic mode to leave memory clocks with the driver. You can explicitly request `--mem-clock 810`, but it can improve efficiency on some cards and reduce hashrate on others. It is not a universal tuning recommendation.
 
-A clean exit releases memory/core clock locks set by Pearly, resets its core offset to zero and restores the previous power cap. Releasing a clock lock returns control to the driver; it does not reconstruct a lock previously set by another tool. If another tool manages memory clocks, use `--mem-clock 0`.
+A clean exit clears the core offset before releasing memory/core clock locks set by Pearly and restores the previous power cap. If the offset cannot be cleared, Pearly retains the core lock and prints recovery instructions; do not release that lock while the offset remains applied. Releasing a clock lock returns control to the driver; it does not reconstruct a lock previously set by another tool. If another tool manages memory clocks, use `--mem-clock 0`.
 
 ### SRBMiner-style Pearl launches
 
@@ -102,7 +103,40 @@ Common SRBMiner PearlHash arguments are accepted:
 ./pearly --algorithm pearlhash --disable-cpu --pool prl.kryptex.network:8048 --tls true --wallet YOUR_PEARL_ADDRESS.WORKER --gpu-id 0
 ```
 
-On Windows, replace `./pearly` with `.\pearly.exe`. This compatibility mode supports **one GPU and one pool**. It does not implement SRBMiner's multi-GPU lists, failover lists, other algorithms, fan controls or management API. Unsupported options produce an error. `--disable-cpu` disables CPU hashing, not Pearl's required CPU proof generation.
+On Windows, replace `./pearly` with `.\pearly.exe`. Use `--gpu-id 0,1` to select multiple GPUs, or omit it to select all visible NVIDIA GPUs. A scalar setting applies to all selected GPUs; comma-separated settings require an explicit device list and follow that list's order. For example, `--gpu-id 2,0 --gpu-coffset 100,0` requests +100 MHz on GPU 2 and zero on GPU 0. This is a syntax example, not an overclock recommendation.
+
+Pearly uses one worker and pool connection per GPU, with a shared wallet and pool. Native syntax is also available:
+
+```sh
+./pearly rig --devices all --url stratum+ssl://prl.kryptex.network:8048 --wallet YOUR_PEARL_ADDRESS --worker rig --dashboard on
+```
+
+`--dashboard auto` prints periodic tables among the logs. `--dashboard on` pins the dashboard above scrolling logs in a terminal; `--dashboard off` uses plain logs. Redirected output remains plain text.
+
+Unsupported options produce an error, including fan controls, the management API, failover lists and SRB tuner/cache options. `--disable-cpu` disables CPU hashing, not Pearl's required CPU proof generation. The standalone Ycash command uses one GPU; the HiveOS adapter can manage multiple Ycash workers.
+
+## Linux efficiency controls
+
+New voltage and efficiency controls are opt-in and require appropriate driver permissions, a fixed core clock and loaded verification on the selected GPU. They are not available on Windows or Mac. Final Linux qualification used driver 620.73.04; support is not inferred from a successful driver call or from another driver's results.
+
+- `--efficiency-tuner` measures and confirms a setting on the current card. With `--core-offset 0`, it searches the voltage curve; a nonzero manual core offset selects the supported offset path. It can take up to 15 minutes, may keep the original settings when no candidate qualifies, and does not guarantee a gain on every card. Automatic curve tuning was checked on the 3090, 4090, 5070 Ti and 5090.
+- `--vcore-target MILLIVOLTS` requests a manual curve target and requires an explicit zero core offset. Select a target appropriate to the card's measured voltage and fixed clock; an unsafe or ineffective request is refused.
+- `--gpu-vddc-offset MILLIVOLTS` accepts the SRB flag spelling. Physical support is card- and driver-dependent: a -30 mV request passed on a 4090, while -60 mV failed enforcement and was restored. The accepted command-line range is not a promise that every value works.
+- `--power-save 1` requests a separate auxiliary-rail efficiency search on supported 50-series cards. It retains a setting only after measured verification; savings vary and a run may restore the original setting.
+
+Do not combine automatic tuning with a manual voltage request. Use a fixed clock already suitable for your card. These controls are available in Pearl pool, benchmark, solo and rig modes; they do not tune Ycash. A fault or unresolved restoration stops further changes and retains recovery information. `pearly efficiency-info` reports available interfaces, and `pearly efficiency-recover GPU-...` handles a retained transaction by GPU UUID. Follow the miner's diagnostic instructions rather than resetting clocks out of order.
+
+## HiveOS
+
+Use the separate custom-miner download in the table above. It requires an NVIDIA rig, HiveOS based on Ubuntu 22.04 or newer (glibc 2.34 or newer), Python 3 and jq. The same package supports Pearl and Ycash, per-GPU statistics and miner restart.
+
+In your flight sheet, choose **Configure in miner → Custom → Setup Miner Config**. Set the miner name to `pearly` and the installation URL to:
+
+```text
+https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.1/pearly-2.0.1.tar.gz
+```
+
+Use `pearlhash` for Pearl or `equihash192` for Ycash, your wallet and worker template, and your pool's URL and password. The package README has the complete flight-sheet fields and supported extra arguments. All visible NVIDIA GPUs are selected by default. Configure each clock or voltage setting in one place to avoid competing HiveOS and Pearly controls.
 
 ## Pools
 
@@ -145,19 +179,19 @@ Download `SHA256SUMS` from the **same release** as your package. Compute the arc
 macOS:
 
 ```sh
-shasum -a 256 Pearly-2.0.0.dmg
+shasum -a 256 Pearly-2.0.1.dmg
 ```
 
 Linux:
 
 ```sh
-sha256sum pearly-2.0.0-linux-x86_64.tar.gz
+sha256sum pearly-2.0.1-linux-x86_64.tar.gz
 ```
 
 Windows PowerShell:
 
 ```powershell
-Get-FileHash .\pearly-2.0.0-windows-x86_64.zip -Algorithm SHA256
+Get-FileHash .\pearly-2.0.1-windows-x86_64.zip -Algorithm SHA256
 ```
 
 ## Help and reports
