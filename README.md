@@ -8,12 +8,12 @@ Pearly is free to download, with a **2% developer fee** for each coin. This repo
 
 ## Choose a download
 
-| Platform | Pearly 2.0.2 download | Interface |
+| Platform | Pearly 2.0.3 download | Interface |
 |---|---|---|
-| macOS, Apple silicon | [Pearly-2.0.2.dmg](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.2/Pearly-2.0.2.dmg) | Mac app |
-| Linux, x86-64, NVIDIA | [pearly-2.0.2-linux-x86_64.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.2/pearly-2.0.2-linux-x86_64.tar.gz) | Command line |
-| Windows, x86-64, NVIDIA | [pearly-2.0.2-windows-x86_64.zip](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.2/pearly-2.0.2-windows-x86_64.zip) | Command line |
-| HiveOS, NVIDIA | [pearly-2.0.2.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.2/pearly-2.0.2.tar.gz) | Custom miner |
+| macOS, Apple silicon | [Pearly-2.0.3.dmg](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.3/Pearly-2.0.3.dmg) | Mac app |
+| Linux, x86-64, NVIDIA | [pearly-2.0.3-linux-x86_64.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.3/pearly-2.0.3-linux-x86_64.tar.gz) | Command line |
+| Windows, x86-64, NVIDIA | [pearly-2.0.3-windows-x86_64.zip](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.3/pearly-2.0.3-windows-x86_64.zip) | Command line |
+| HiveOS, NVIDIA | [pearly-2.0.3.tar.gz](https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.3/pearly-2.0.3.tar.gz) | Custom miner |
 
 
 
@@ -24,7 +24,7 @@ Install an NVIDIA driver before running Pearly. The CUDA development toolkit is 
 
 - **Linux:** x86-64 with glibc 2.34 or later; tested on Ubuntu 22.04.
 - **Windows:** x86-64; tested on Windows 11 Enterprise LTSC 2024. The C++ runtime is included. The executable is not Authenticode-signed; verify the download using its checksum.
-- **GPUs:** both engines were tested on RTX 3060, RTX 3060 Ti, RTX 3070, RTX 3080, RTX 3090, RTX 4090, RTX 5060 Ti, RTX 5070, RTX 5070 Ti and RTX 5090. Pearl automatically selects an optimized kernel for these cards. RTX 3070 Ti and RTX 3080 12GB use general kernels; RTX 3070 Ti was not available for final qualification. Each package's manifest lists the exact tested cards and drivers. Final NVIDIA qualification used Linux driver 620.73.04 and Windows driver 621.40.
+- **Desktop NVIDIA GPUs.** Pearl and Ycash were tested on the RTX 3060, 3060 Ti, 3070, 3080 10 GB, 3080 Ti, 3090, 4090, 5060 Ti, 5070, 5070 Ti, 5080 and 5090 on Linux and Windows. The RTX 3050 6 GB and 8 GB, RTX 3070 Ti, RTX 3080 12 GB and RTX 3090 Ti have provisional coverage. They passed stock Pearl mining on Linux with automatic and manual kernel selection. Each native package’s manifest lists the exact tested cards and driver versions.
 
 The command-line examples below use one GPU and one pool. Use `devices` to list GPUs and `--help` for available options.
 
@@ -33,8 +33,8 @@ The command-line examples below use one GPU and one pool. Use `devices` to list 
 Extract the archive and enter its directory:
 
 ```sh
-tar -xzf pearly-2.0.2-linux-x86_64.tar.gz
-cd pearly-2.0.2-linux-x86_64
+tar -xzf pearly-2.0.3-linux-x86_64.tar.gz
+cd pearly-2.0.3-linux-x86_64
 ./pearly --version
 ./pearly devices
 ./pearly selftest --zk
@@ -117,7 +117,7 @@ Unsupported options produce an error, including the management API, failover lis
 
 ## Kernel selection
 
-Pearly selects a kernel automatically. `./pearly --device 0 kernels` lists public names for a card; add `--kernel NAME` to select one manually. The startup log and dashboard show the name actually loaded. Plain RTX 5070 uses `5070Ti_kernel_0`; the admitted smaller Ampere cards share `3090_kernel_0`. Numbered general alternatives are also listed. Names are checked against the selected device and do not expose internal implementation details.
+Pearly selects a kernel for the detected GPU. The desktop RTX 5080 uses `5070Ti_0`, and the supported desktop RTX 30-series cards use `3090_0`. The tuned names are `3090_0`, `4090_0`, `5060Ti_0`, `5070Ti_0` and `5090_0`. General alternatives are `general_0` through `general_3`. Run `./pearly --device 0 kernels` to see the names available for your card. Use `--kernel NAME` to select one manually. If you set a name in 2.0.2, update your command or flight sheet. The startup log and dashboard show the kernel actually loaded.
 
 Rig and SRB-compatible launches accept `--kernel` as a Pearly extension: one name for all selected cards, or a comma-separated list in device-list order. Use `auto` on cards that should keep automatic selection. The old dimension-based selector is available only in development builds.
 
@@ -145,7 +145,7 @@ Use the separate custom-miner download in the table above. It requires an NVIDIA
 In your flight sheet, choose **Configure in miner → Custom → Setup Miner Config**. Set the miner name to `pearly` and the installation URL to:
 
 ```text
-https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.2/pearly-2.0.2.tar.gz
+https://github.com/pearly-miner/pearly-releases/releases/download/v2.0.3/pearly-2.0.3.tar.gz
 ```
 
 Use `pearlhash` for Pearl or `equihash192` for Ycash, your wallet and worker template, and your pool's URL and password. The package README has the complete flight-sheet fields and supported extra arguments. All visible NVIDIA GPUs are selected by default. Configure each clock or voltage setting in one place to avoid competing HiveOS and Pearly controls.
@@ -191,19 +191,19 @@ Download `SHA256SUMS` from the **same release** as your package. Compute the arc
 macOS:
 
 ```sh
-shasum -a 256 Pearly-2.0.2.dmg
+shasum -a 256 Pearly-2.0.3.dmg
 ```
 
 Linux:
 
 ```sh
-sha256sum pearly-2.0.2-linux-x86_64.tar.gz
+sha256sum pearly-2.0.3-linux-x86_64.tar.gz
 ```
 
 Windows PowerShell:
 
 ```powershell
-Get-FileHash .\pearly-2.0.2-windows-x86_64.zip -Algorithm SHA256
+Get-FileHash .\pearly-2.0.3-windows-x86_64.zip -Algorithm SHA256
 ```
 
 ## Help and reports
